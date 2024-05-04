@@ -19,6 +19,7 @@ public class PixelmonPermsCommand {
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
         dispatcher.register(
                 Commands.literal("pixelmonperms")
+                        .requires(source -> source.hasPermission(2))
                         .then(Commands.literal("set")
                             .then(Commands.literal("permission")
                                 .then(Commands.argument("permission", PermissionNodeArgument.permissionNode())

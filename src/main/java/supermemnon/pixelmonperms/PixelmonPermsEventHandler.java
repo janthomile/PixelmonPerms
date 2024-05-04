@@ -44,19 +44,12 @@ public class PixelmonPermsEventHandler {
     public static class ModEvents {
         @SubscribeEvent(priority =  EventPriority.HIGHEST)
         public static void onNPCInteractEvent(NPCEvent.Interact event) {
-            PixelmonPerms.getLOGGER().log(Level.INFO, "NPC Interaction!");
             if (InteractionHandler.hasRequiredPermission(event.npc)) {
-                PixelmonPerms.getLOGGER().log(Level.INFO, "NPC Has required Permission!");
                 String perm = InteractionHandler.getRequiredPermission(event.npc);
                 if (!PermissionAPI.hasPermission(event.player, perm)) {
-                    PixelmonPerms.getLOGGER().log(Level.INFO, "NPC Interaction Cancelled!");
                     event.player.sendMessage(new StringTextComponent(InteractionHandler.getCancelMessage(event.npc)), event.player.getUUID());
                     event.setCanceled(true);
                 }
-                else {
-                    PixelmonPerms.getLOGGER().log(Level.INFO, "Player has permission!!");
-                }
-
             }
         }
     }
