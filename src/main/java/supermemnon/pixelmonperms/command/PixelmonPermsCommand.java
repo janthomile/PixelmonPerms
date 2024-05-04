@@ -55,7 +55,7 @@ public class PixelmonPermsCommand {
                 return 0;
             }
             String perm = InteractionHandler.getRequiredPermission(lookEntity);
-            source.sendSuccess(new StringTextComponent(String.format("Required Permission: %s", perm)), false);
+            source.sendSuccess(new StringTextComponent(String.format("Required Permission: %s", perm)), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));
@@ -90,7 +90,7 @@ public class PixelmonPermsCommand {
                 return 0;
             }
             String cancelMessage = InteractionHandler.getCancelMessage(lookEntity);
-            source.sendSuccess(new StringTextComponent(String.format("Required Permission: %s", cancelMessage)), false);
+            source.sendSuccess(new StringTextComponent(String.format("Required Permission: %s", cancelMessage)), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));
@@ -125,7 +125,7 @@ public class PixelmonPermsCommand {
                 return 0;
             }
             InteractionHandler.removeRequirePermission(lookEntity);
-            source.sendSuccess(new StringTextComponent("Removed NPC's required permission."), false);
+            source.sendSuccess(new StringTextComponent("Removed NPC's required permission."), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));
