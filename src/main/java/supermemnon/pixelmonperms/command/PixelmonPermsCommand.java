@@ -90,7 +90,7 @@ public class PixelmonPermsCommand {
                 return 0;
             }
             String cancelMessage = InteractionHandler.getCancelMessage(lookEntity);
-            source.sendSuccess(new StringTextComponent(String.format("Required Permission: %s", cancelMessage)), true);
+            source.sendSuccess(new StringTextComponent(String.format("Cancel Message: %s", cancelMessage)), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));

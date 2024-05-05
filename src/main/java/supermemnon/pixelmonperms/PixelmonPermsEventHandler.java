@@ -13,6 +13,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.logging.log4j.Level;
 import supermemnon.pixelmonperms.command.PixelmonPermsCommand;
+import supermemnon.pixelmonperms.util.FormattingHelper;
 
 
 //@Mod.EventBusSubscriber(modid = "pixelmonperms")
@@ -47,7 +48,7 @@ public class PixelmonPermsEventHandler {
             if (InteractionHandler.hasRequiredPermission(event.npc)) {
                 String perm = InteractionHandler.getRequiredPermission(event.npc);
                 if (!PermissionAPI.hasPermission(event.player, perm)) {
-                    event.player.sendMessage(new StringTextComponent(InteractionHandler.getCancelMessage(event.npc)), event.player.getUUID());
+                    event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(InteractionHandler.getCancelMessage(event.npc))), event.player.getUUID());
                     event.setCanceled(true);
                 }
             }
