@@ -1,14 +1,14 @@
 package supermemnon.pixelmonperms;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.pixelmonmod.pixelmon.api.events.npc.NPCEvent;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.server.permission.PermissionAPI;
-import org.apache.logging.log4j.Level;
 import supermemnon.pixelmonperms.command.PixelmonPermsCommand;
 import supermemnon.pixelmonperms.util.FormattingHelper;
 import supermemnon.pixelmonperms.util.PermUtils;
@@ -40,15 +40,25 @@ public class PixelmonPermsEventHandler {
 //            }
 //        }
 //    }
+    public static boolean executeCommandString(MinecraftServer server, String command) throws CommandSyntaxException {
+        if (command.length() > 1 && (command.charAt(0) == '/')) {
+            command = command.replaceFirst("/", "");
+        }
+        server.getCommands().getDispatcher().execute(command, server.createCommandSourceStack());
+        return false;
+    }
     public static class ModEvents {
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public static void onNPCInteractEvent(NPCEvent.Interact event) {
+        public static void onNPCInteractEvent(NPCEvent.Interact event) throws CommandSyntaxException {
             if (!NBTHandler.hasRequiredPermission(event.npc)) {
                 return;
             }
             String[] perms = NBTHandler.getRequiredPermissions(event.npc);
             if (!PermUtils.hasAllRequiredPermissions(event.player, perms)) {
                 event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc))), event.player.getUUID());
+                if (NBTHandler.hasFailCommand(event.npc)) {
+                    boolean commandSuccess = executeCommandString(event.player.getServer(), NBTHandler.getFailCommand(event.npc));
+                }
                 event.setCanceled(true);
             }
         }
