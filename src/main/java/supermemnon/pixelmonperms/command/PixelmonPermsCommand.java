@@ -21,6 +21,7 @@ import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.Level;
 import supermemnon.pixelmonperms.NBTHandler;
 import supermemnon.pixelmonperms.PixelmonPerms;
+import supermemnon.pixelmonperms.util.FormattingHelper;
 import supermemnon.pixelmonperms.util.RayTraceHelper;
 
 import java.util.UUID;
@@ -42,15 +43,22 @@ public class PixelmonPermsCommand {
                                 .executes(context -> runSetCancelMessage(context.getSource(), StringArgumentType.getString(context, "message")))))
                 .then(Commands.literal("permission")
                         .then(Commands.argument("permission", PermissionNodeArgument.permissionNode())
-                                .executes(context -> runSetPermission(context.getSource(), PermissionNodeArgument.getPermissionNode(context, "permission"))))));
+                                .executes(context -> runSetPermission(context.getSource(), PermissionNodeArgument.getPermissionNode(context, "permission"))
+                                )
+                        )
+                )
+           );
     }
 
     private static LiteralArgumentBuilder<CommandSource> appendGetCommand(LiteralArgumentBuilder<CommandSource> command) {
         return command.then(Commands.literal("get")
                 .then(Commands.literal("message")
-                        .executes(context -> runGetCancelMessage(context.getSource())))
+                        .executes(context -> runGetCancelMessage(context.getSource()))
+                )
                 .then(Commands.literal("permission")
-                        .executes(context -> runGetPermission(context.getSource()))));
+                        .executes(context -> runGetPermission(context.getSource()))
+                )
+        );
     }
 
     private static LiteralArgumentBuilder<CommandSource> appendRemoveCommand(LiteralArgumentBuilder<CommandSource> command) {
@@ -58,7 +66,10 @@ public class PixelmonPermsCommand {
                 .then(Commands.literal("message")
                         .executes(context -> runRemoveCancelMessage(context.getSource())))
                 .then(Commands.literal("permission")
-                        .executes(context -> runRemovePermission(context.getSource(), IntegerArgumentType.getInteger(context, "index")))
+                        .then(Commands.argument("index", IntegerArgumentType.integer())
+                            .executes(context -> runRemovePermission(context.getSource(), IntegerArgumentType.getInteger(context, "index"))
+                            )
+                    )
                 )
         );
     }
@@ -156,7 +167,7 @@ public class PixelmonPermsCommand {
                 return 0;
             }
             String[] permList = NBTHandler.getRequiredPermissions(lookEntity);
-            source.sendSuccess(new StringTextComponent(String.format("Required Permissions: %s", permList)), true);
+            source.sendSuccess(new StringTextComponent(String.format("Required Permissions:\n%s", FormattingHelper.formatIndexedStringList(permList))), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));

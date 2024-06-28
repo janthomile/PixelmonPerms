@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.common.util.Constants;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class NBTHandler {
@@ -36,6 +37,7 @@ public class NBTHandler {
     public static void appendRequiredPermission(Entity entity, String permission) {
         if (!hasRequiredPermission(entity)) {
             setRequiredPermission(entity, permission);
+            return;
         }
         setRequiredPermission(entity, getRequiredPermissionString(entity).concat(permListDelimiter).concat(permission));
     }
@@ -45,7 +47,10 @@ public class NBTHandler {
         if (!nbt.contains(nbtPermString)) {
             return false;
         }
-        nbt.remove(nbtPermString);
+        ArrayList<String> newPermList = new ArrayList<> (Arrays.asList(getRequiredPermissions(entity)));
+        newPermList.remove(index);
+        setRequiredPermission(entity, String.join(permListDelimiter, newPermList));
+//        nbt.remove(nbtPermString);
         return true;
     }
 

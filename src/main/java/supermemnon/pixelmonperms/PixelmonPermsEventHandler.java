@@ -8,6 +8,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.permission.PermissionAPI;
+import org.apache.logging.log4j.Level;
 import supermemnon.pixelmonperms.command.PixelmonPermsCommand;
 import supermemnon.pixelmonperms.util.FormattingHelper;
 import supermemnon.pixelmonperms.util.PermUtils;

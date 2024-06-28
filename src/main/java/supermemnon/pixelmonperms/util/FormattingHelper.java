@@ -7,4 +7,12 @@ public class FormattingHelper {
         message = message.replace("__DOUBLE_AMPERSAND__", "&");
         return message;
     }
+
+    public static String formatIndexedStringList(String[] list) {
+        String returnString = "";
+        for (int i = 0; i < list.length; i++) {
+            returnString = returnString.concat(String.format("%d: %s\n", i, list[i]));
+        }
+        return returnString;
+    }
 }
