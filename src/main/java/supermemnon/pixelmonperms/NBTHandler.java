@@ -19,6 +19,7 @@ public class NBTHandler {
         CompoundNBT  nbt = entity.getPersistentData();
         return nbt.getTagType(search_nbt) == Constants.NBT.TAG_STRING;
     }
+
     public static String[] getRequiredPermissions(Entity entity) {
         CompoundNBT  nbt = entity.getPersistentData();
         return parseStringList(nbt.getString(nbtPermString));
@@ -57,6 +58,25 @@ public class NBTHandler {
     public static boolean hasRequiredPermission(Entity entity) {
         CompoundNBT  nbt = entity.getPersistentData();
         return nbt.contains(nbtPermString);
+    }
+
+    public static boolean removeFailCommand(Entity entity) {
+        CompoundNBT  nbt = entity.getPersistentData();
+        if (!nbt.contains(nbtFailCommandString)) {
+            return false;
+        }
+        nbt.remove(nbtFailCommandString);
+        return true;
+    }
+
+    public static String getFailCommand(Entity entity) {
+        CompoundNBT  nbt = entity.getPersistentData();
+        return nbt.getString(nbtFailCommandString);
+    }
+
+    public static void setFailCommand(Entity entity, String command) {
+        CompoundNBT  nbt = entity.getPersistentData();
+        nbt.putString(nbtFailCommandString, command);
     }
 
     public static boolean hasFailCommand(Entity entity) {
