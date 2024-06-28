@@ -1,19 +1,16 @@
 package supermemnon.pixelmonperms;
 
 import com.pixelmonmod.pixelmon.api.events.npc.NPCEvent;
-import com.pixelmonmod.pixelmon.entities.npcs.NPCEntity;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.permission.PermissionAPI;
-import org.apache.logging.log4j.Level;
 import supermemnon.pixelmonperms.command.PixelmonPermsCommand;
 import supermemnon.pixelmonperms.util.FormattingHelper;
+import supermemnon.pixelmonperms.util.PermUtils;
 
 
 //@Mod.EventBusSubscriber(modid = "pixelmonperms")
@@ -29,7 +26,7 @@ public class PixelmonPermsEventHandler {
 
     }
 
-//    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    //    @SubscribeEvent(priority = EventPriority.HIGHEST)
 //    public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
 //        PixelmonPerms.getLOGGER().log(Level.INFO, "Interaction!!");
 //        if (event.getEntity() instanceof NPCEntity && InteractionHandler.hasRequiredPermission(event.getEntity())) {
@@ -43,16 +40,16 @@ public class PixelmonPermsEventHandler {
 //        }
 //    }
     public static class ModEvents {
-        @SubscribeEvent(priority =  EventPriority.HIGHEST)
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
         public static void onNPCInteractEvent(NPCEvent.Interact event) {
-            if (InteractionHandler.hasRequiredPermission(event.npc)) {
-                String perm = InteractionHandler.getRequiredPermission(event.npc);
-                if (!PermissionAPI.hasPermission(event.player, perm)) {
-                    event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(InteractionHandler.getCancelMessage(event.npc))), event.player.getUUID());
-                    event.setCanceled(true);
-                }
+            if (!NBTHandler.hasRequiredPermission(event.npc)) {
+                return;
+            }
+            String[] perms = NBTHandler.getRequiredPermissions(event.npc);
+            if (!PermUtils.hasAllRequiredPermissions(event.player, perms)) {
+                event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc))), event.player.getUUID());
+                event.setCanceled(true);
             }
         }
     }
-
 }

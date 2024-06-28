@@ -1,4 +1,4 @@
-package supermemnon.pixelmonperms;
+package supermemnon.pixelmonperms.util;
 
 import com.pixelmonmod.pixelmon.entities.npcs.NPCEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;

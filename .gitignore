@@ -22,6 +22,7 @@ gradle/wrapper/gradle-wrapper.jar
 eclipse
 run
 libs
+planning.txt
 
 # Files from Forge MDK
 forge*changelog.txt

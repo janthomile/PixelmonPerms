@@ -1,18 +1,13 @@
 package supermemnon.pixelmonperms.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
-import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
-import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
-import com.pixelmonmod.pixelmon.battles.controller.participants.BattleParticipant;
-import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipant;
-import com.pixelmonmod.pixelmon.battles.controller.participants.TrainerParticipant;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCEntity;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import net.minecraft.command.CommandSource;
@@ -20,14 +15,11 @@ import net.minecraft.command.Commands;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.Level;
-import supermemnon.pixelmonperms.InteractionHandler;
+import supermemnon.pixelmonperms.NBTHandler;
 import supermemnon.pixelmonperms.PixelmonPerms;
 import supermemnon.pixelmonperms.util.RayTraceHelper;
 
@@ -66,7 +58,7 @@ public class PixelmonPermsCommand {
                 .then(Commands.literal("message")
                         .executes(context -> runRemoveCancelMessage(context.getSource())))
                 .then(Commands.literal("permission")
-                        .executes(context -> runRemovePermission(context.getSource()))
+                        .executes(context -> runRemovePermission(context.getSource(), IntegerArgumentType.getInteger(context, "index")))
                 )
         );
     }
@@ -81,6 +73,41 @@ public class PixelmonPermsCommand {
         );
     }
 
+//    private static int runGetPermissionList(CommandSource source) throws CommandSyntaxException {
+//        ServerPlayerEntity player = source.getPlayerOrException();
+//        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+////        String perm = StringArgumentType.getString(context.getSource());
+//        if (lookEntity == null) {
+//            source.sendFailure(new StringTextComponent("No entity found."));
+//        }
+//        else if (lookEntity instanceof NPCEntity) {
+//            if (!NBTHandler.hasRequiredPermission(lookEntity)) {
+//                source.sendFailure(new StringTextComponent("NPC has no required permission!"));
+//                return 0;
+//            }
+//            String[] perm = NBTHandler.getRequiredPermissions(lookEntity);
+//            source.sendSuccess(new StringTextComponent(String.format("Required Permission: %s", perm)), true);
+//        }
+//        else {
+//            source.sendFailure(new StringTextComponent("Entity is not NPC!"));
+//        }
+//        return 1;
+//    }
+
+//    private static int runSetPermission(CommandSource source, String permission) throws CommandSyntaxException {
+//        ServerPlayerEntity player = source.getPlayerOrException();
+//        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+//        if (lookEntity == null) {
+//            source.sendFailure(new StringTextComponent("No entity found."));
+//        }
+//        else if (lookEntity instanceof NPCEntity) {
+//            NBTHandler.setRequiredPermission(lookEntity, permission);
+//        }
+//        else {
+//            source.sendFailure(new StringTextComponent("Entity is not NPC!"));
+//        }
+//        return 1;
+//    }
 
     private static int runNpcBattle(CommandSource source, String playerName, String npcUUID) throws CommandSyntaxException {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
@@ -124,12 +151,12 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            if (!InteractionHandler.hasRequiredPermission(lookEntity)) {
+            if (!NBTHandler.hasRequiredPermission(lookEntity)) {
                 source.sendFailure(new StringTextComponent("NPC has no required permission!"));
                 return 0;
             }
-            String perm = InteractionHandler.getRequiredPermission(lookEntity);
-            source.sendSuccess(new StringTextComponent(String.format("Required Permission: %s", perm)), true);
+            String[] permList = NBTHandler.getRequiredPermissions(lookEntity);
+            source.sendSuccess(new StringTextComponent(String.format("Required Permissions: %s", permList)), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));
@@ -144,11 +171,36 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-                InteractionHandler.setRequiredPermission(lookEntity, permission);
+                NBTHandler.appendRequiredPermission(lookEntity, permission);
             }
         else {
                 source.sendFailure(new StringTextComponent("Entity is not NPC!"));
             }
+        return 1;
+    }
+
+    private static int runRemovePermission(CommandSource source, int index) throws CommandSyntaxException {
+        ServerPlayerEntity player = source.getPlayerOrException();
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        if (lookEntity == null) {
+            source.sendFailure(new StringTextComponent("No entity found."));
+            return 0;
+        }
+        else if (!(lookEntity instanceof NPCEntity)) {
+            source.sendFailure(new StringTextComponent("Entity is not NPC!"));
+            return 0;
+        }
+        String[] perms = NBTHandler.getRequiredPermissions(lookEntity);
+        if (!NBTHandler.hasRequiredPermission(lookEntity) || perms.length < 1) {
+            source.sendFailure(new StringTextComponent("NPC does not have required permission!!"));
+            return 0;
+        }
+        if (perms.length < (index + 1)) {
+            source.sendFailure(new StringTextComponent("NPC does not have a permission at that index!"));
+            return 0;
+        }
+        NBTHandler.removeRequirePermission(lookEntity, index);
+        source.sendSuccess(new StringTextComponent("Removed NPC's required permission."), true);
         return 1;
     }
 
@@ -159,11 +211,11 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            if (!InteractionHandler.hasCancelMessage(lookEntity)) {
+            if (!NBTHandler.hasCancelMessage(lookEntity)) {
                 source.sendFailure(new StringTextComponent("NPC has no custom cancel message!"));
                 return 0;
             }
-            String cancelMessage = InteractionHandler.getCancelMessage(lookEntity);
+            String cancelMessage = NBTHandler.getCancelMessage(lookEntity);
             source.sendSuccess(new StringTextComponent(String.format("Cancel Message: %s", cancelMessage)), true);
         }
         else {
@@ -179,7 +231,7 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            InteractionHandler.setCancelMessage(lookEntity, cancelMessage);
+            NBTHandler.setCancelMessage(lookEntity, cancelMessage);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));
@@ -187,25 +239,7 @@ public class PixelmonPermsCommand {
         return 1;
     }
 
-    private static int runRemovePermission(CommandSource source) throws CommandSyntaxException {
-        ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
-        if (lookEntity == null) {
-            source.sendFailure(new StringTextComponent("No entity found."));
-        }
-        else if (lookEntity instanceof NPCEntity) {
-            if (!InteractionHandler.hasRequiredPermission(lookEntity)) {
-                source.sendFailure(new StringTextComponent("NPC does not have required permission!!"));
-                return 0;
-            }
-            InteractionHandler.removeRequirePermission(lookEntity);
-            source.sendSuccess(new StringTextComponent("Removed NPC's required permission."), true);
-        }
-        else {
-            source.sendFailure(new StringTextComponent("Entity is not NPC!"));
-        }
-        return 1;
-    }
+
 
     private static int runRemoveCancelMessage(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
@@ -214,11 +248,11 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            if (!InteractionHandler.hasCancelMessage(lookEntity)) {
+            if (!NBTHandler.hasCancelMessage(lookEntity)) {
                 source.sendFailure(new StringTextComponent("NPC does not have custom cancel message!!"));
                 return 0;
             }
-            InteractionHandler.removeCancelMessage(lookEntity);
+            NBTHandler.removeCancelMessage(lookEntity);
             source.sendSuccess(new StringTextComponent("Removed NPC's custom cancel message."), false);
         }
         else {

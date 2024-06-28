@@ -2,13 +2,28 @@ package supermemnon.pixelmonperms;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraftforge.common.util.Constants;
 
-public class InteractionHandler {
+import java.util.Arrays;
+
+public class NBTHandler {
 
     static String nbtPermString = "pixelmonperm";
     static String nbtCancelString = "pixelmoncancel";
+    static String nbtFailCommandString = "pixelpermfailcmd";
     static String defaultCancelMessage = "Talk to me later!";
-    public static String getRequiredPermission(Entity entity) {
+    static String permListDelimiter = ",";
+
+    public static boolean isStringNbt(Entity entity, String search_nbt) {
+        CompoundNBT  nbt = entity.getPersistentData();
+        return nbt.getTagType(search_nbt) == Constants.NBT.TAG_STRING;
+    }
+    public static String[] getRequiredPermissions(Entity entity) {
+        CompoundNBT  nbt = entity.getPersistentData();
+        return parseStringList(nbt.getString(nbtPermString));
+    }
+
+    public static String getRequiredPermissionString(Entity entity) {
         CompoundNBT  nbt = entity.getPersistentData();
         return nbt.getString(nbtPermString);
     }
@@ -18,7 +33,14 @@ public class InteractionHandler {
         nbt.putString(nbtPermString, permission);
     }
 
-    public static boolean removeRequirePermission(Entity entity) {
+    public static void appendRequiredPermission(Entity entity, String permission) {
+        if (!hasRequiredPermission(entity)) {
+            setRequiredPermission(entity, permission);
+        }
+        setRequiredPermission(entity, getRequiredPermissionString(entity).concat(permListDelimiter).concat(permission));
+    }
+
+    public static boolean removeRequirePermission(Entity entity, int index) {
         CompoundNBT  nbt = entity.getPersistentData();
         if (!nbt.contains(nbtPermString)) {
             return false;
@@ -30,6 +52,11 @@ public class InteractionHandler {
     public static boolean hasRequiredPermission(Entity entity) {
         CompoundNBT  nbt = entity.getPersistentData();
         return nbt.contains(nbtPermString);
+    }
+
+    public static boolean hasFailCommand(Entity entity) {
+        CompoundNBT  nbt = entity.getPersistentData();
+        return nbt.contains(nbtFailCommandString);
     }
 
     public static void setCancelMessage(Entity entity, String message) {
@@ -49,6 +76,10 @@ public class InteractionHandler {
         else {
             return defaultCancelMessage;
         }
+    }
+
+    public static String[] parseStringList(String string) {
+        return string.split(permListDelimiter);
     }
 
     public static boolean removeCancelMessage(Entity entity) {
