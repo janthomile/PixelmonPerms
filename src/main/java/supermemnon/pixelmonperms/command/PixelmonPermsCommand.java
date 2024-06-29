@@ -131,8 +131,8 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            NBTHandler.setFailCommand(lookEntity, command);
-            source.sendSuccess(new StringTextComponent(String.format("Set fail command: %s", command)), true);
+            NBTHandler.appendFailCommand(lookEntity, command);
+            source.sendSuccess(new StringTextComponent(String.format("Added fail command: %s", command)), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));

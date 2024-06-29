@@ -14,7 +14,7 @@ public class NBTHandler {
     static String nbtFailCommandString = "pixelpermfailcmd";
     static String defaultCancelMessage = "Talk to me later!";
     static String permListDelimiter = ",";
-    static String commandListDelimiter = "||";
+    static String commandListDelimiter = "\\|\\|";
 
     public static boolean isStringNbt(Entity entity, String search_nbt) {
         CompoundNBT  nbt = entity.getPersistentData();
