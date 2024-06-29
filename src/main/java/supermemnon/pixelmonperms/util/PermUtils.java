@@ -10,8 +10,8 @@ import supermemnon.pixelmonperms.PixelmonPerms;
 
 public class PermUtils {
     public static boolean hasAllRequiredPermissions(PlayerEntity player, String[] permList) {
-        for (String perm : permList) {
-            if (!PermissionAPI.hasPermission(player, perm)) {
+        for (int i = 0; i < permList.length; i++) {
+            if (!PermissionAPI.hasPermission(player, permList[i])) {
                 return false;
             }
             else {

@@ -14,7 +14,8 @@ public class NBTHandler {
     static String nbtFailCommandString = "pixelpermfailcmd";
     static String defaultCancelMessage = "Talk to me later!";
     static String permListDelimiter = ",";
-    static String commandListDelimiter = "\\|\\|";
+    static String commandListDelimiter = "||";
+    static String commandListDelimiterRegex = "\\|\\|";
 
     public static boolean isStringNbt(Entity entity, String search_nbt) {
         CompoundNBT  nbt = entity.getPersistentData();
@@ -79,7 +80,7 @@ public class NBTHandler {
 
     public static String[] getFailCommands(Entity entity) {
         CompoundNBT  nbt = entity.getPersistentData();
-        return parseStringList(nbt.getString(nbtFailCommandString), commandListDelimiter);
+        return parseCommandList(nbt.getString(nbtFailCommandString));
     }
 
     public static String getFailCommand(Entity entity) {
@@ -133,5 +134,8 @@ public class NBTHandler {
     }
     public static String[] parseStringList(String string, String delimiter) {
         return string.split(delimiter);
+    }
+    public static String[] parseCommandList(String string) {
+        return string.split(commandListDelimiterRegex);
     }
 }
