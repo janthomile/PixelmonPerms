@@ -113,8 +113,8 @@ public class PixelmonPermsCommand {
                 source.sendFailure(new StringTextComponent("NPC has no fail command!!"));
                 return 0;
             }
-            String command = NBTHandler.getFailCommand(lookEntity);
-            source.sendSuccess(new StringTextComponent(String.format("Fail Command: %s", command)), true);
+            String[] commandList = NBTHandler.getFailCommands(lookEntity);
+            source.sendSuccess(new StringTextComponent(String.format("Interact Fail commands:\n%s", FormattingHelper.formatIndexedStringList(commandList))), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));

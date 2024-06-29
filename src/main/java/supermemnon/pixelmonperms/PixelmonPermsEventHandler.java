@@ -4,6 +4,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.pixelmonmod.pixelmon.api.events.npc.NPCEvent;
 import net.minecraft.command.CommandSource;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -14,6 +15,7 @@ import net.minecraftforge.fml.common.Mod;
 import supermemnon.pixelmonperms.command.PixelmonPermsCommand;
 import supermemnon.pixelmonperms.util.FormattingHelper;
 import supermemnon.pixelmonperms.util.PermUtils;
+import supermemnon.pixelmonperms.util.PixelmonUtils;
 
 import static supermemnon.pixelmonperms.util.CommandUtils.executeCommandString;
 
@@ -53,7 +55,8 @@ public class PixelmonPermsEventHandler {
             }
             String[] perms = NBTHandler.getRequiredPermissions(event.npc);
             if (!PermUtils.hasAllRequiredPermissions(event.player, perms)) {
-                event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc))), event.player.getUUID());
+                PixelmonUtils.customNpcChat(event.npc, (ServerPlayerEntity) event.player, FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc)));
+//                event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc))), event.player.getUUID());
                 if (NBTHandler.hasFailCommand(event.npc)) {
                     boolean commandSuccess = executeCommandString(event.player.getServer(), event.player, NBTHandler.getFailCommand(event.npc));
                 }
