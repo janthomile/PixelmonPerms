@@ -86,7 +86,9 @@ public class PixelmonPermsCommand {
                     )
                 )
                 .then(Commands.literal("failcommand")
-                        .executes(context -> runRemoveFailCommand(context.getSource())
+                        .then(Commands.argument("index", IntegerArgumentType.integer())
+                                .executes(context -> runRemoveFailCommand(context.getSource(), IntegerArgumentType.getInteger(context, "index"))
+                                )
                         )
                 )
         );
@@ -138,7 +140,7 @@ public class PixelmonPermsCommand {
         return 1;
     }
 
-    private static int runRemoveFailCommand(CommandSource source) throws CommandSyntaxException {
+    private static int runRemoveFailCommand(CommandSource source, int index) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
         Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
         if (lookEntity == null) {
@@ -146,11 +148,16 @@ public class PixelmonPermsCommand {
         }
         else if (lookEntity instanceof NPCEntity) {
             if (!NBTHandler.hasFailCommand(lookEntity)) {
-                source.sendFailure(new StringTextComponent("NPC does not have fail command set!!"));
+                source.sendFailure(new StringTextComponent("NPC does not have fail command set!"));
                 return 0;
             }
-            NBTHandler.removeFailCommand(lookEntity);
-            source.sendSuccess(new StringTextComponent("Removed NPC's fail command."), false);
+            String[] commands = NBTHandler.getFailCommands(lookEntity);
+            if (commands.length < (index + 1)) {
+                source.sendFailure(new StringTextComponent("NPC does not have a fail command at that index!"));
+                return 0;
+            }
+            NBTHandler.removeFailCommand(lookEntity, index);
+            source.sendSuccess(new StringTextComponent(String.format("Removed NPC's fail command at index %d.", index)), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));

@@ -17,6 +17,7 @@ import supermemnon.pixelmonperms.util.FormattingHelper;
 import supermemnon.pixelmonperms.util.PermUtils;
 import supermemnon.pixelmonperms.util.PixelmonUtils;
 
+import static supermemnon.pixelmonperms.util.CommandUtils.executeCommandList;
 import static supermemnon.pixelmonperms.util.CommandUtils.executeCommandString;
 
 
@@ -58,7 +59,7 @@ public class PixelmonPermsEventHandler {
                 PixelmonUtils.customNpcChat(event.npc, (ServerPlayerEntity) event.player, FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc)));
 //                event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc))), event.player.getUUID());
                 if (NBTHandler.hasFailCommand(event.npc)) {
-                    boolean commandSuccess = executeCommandString(event.player.getServer(), event.player, NBTHandler.getFailCommand(event.npc));
+                    boolean commandSuccess = executeCommandList(event.player.getServer(), event.player, NBTHandler.getFailCommands(event.npc));
                 }
                 event.setCanceled(true);
             }

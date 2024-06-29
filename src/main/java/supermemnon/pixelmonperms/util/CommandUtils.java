@@ -48,4 +48,10 @@ public class CommandUtils {
         server.getCommands().getDispatcher().execute(command, getPlayerCommandSource(server, relevantPlayer));
         return false;
     }
+    public static boolean executeCommandList(MinecraftServer server, PlayerEntity relevantPlayer, String commands[]) throws CommandSyntaxException {
+        for (int i = 0; i < commands.length; i++) {
+            executeCommandString(server, relevantPlayer, commands[i]);
+        }
+        return false;
+    }
 }
