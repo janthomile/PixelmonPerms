@@ -274,8 +274,8 @@ public class PixelmonPermsCommand {
                 source.sendFailure(new StringTextComponent("NPC has no custom cancel message!"));
                 return 0;
             }
-            String cancelMessage = NBTHandler.getCancelMessage(lookEntity);
-            source.sendSuccess(new StringTextComponent(String.format("Cancel Message: %s", cancelMessage)), true);
+            String[] cancelMessages = NBTHandler.getCancelMessages(lookEntity);
+            source.sendSuccess(new StringTextComponent(String.format("Cancel Messages:\n%s", FormattingHelper.formatIndexedStringList(cancelMessages))), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));
