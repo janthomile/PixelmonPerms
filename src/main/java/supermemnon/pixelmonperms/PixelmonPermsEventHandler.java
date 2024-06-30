@@ -56,7 +56,7 @@ public class PixelmonPermsEventHandler {
             }
             String[] perms = NBTHandler.getRequiredPermissions(event.npc);
             if (!PermUtils.hasAllRequiredPermissions(event.player, perms)) {
-                PixelmonUtils.customNpcChat(event.npc, (ServerPlayerEntity) event.player, FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc)));
+                PixelmonUtils.customNpcChat(event.npc, (ServerPlayerEntity) event.player, NBTHandler.getCancelMessages(event.npc));
 //                event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc))), event.player.getUUID());
                 if (NBTHandler.hasFailCommand(event.npc)) {
                     boolean commandSuccess = executeCommandList(event.player.getServer(), event.player, NBTHandler.getFailCommands(event.npc));

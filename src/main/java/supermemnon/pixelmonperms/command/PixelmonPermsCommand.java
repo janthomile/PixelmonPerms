@@ -76,7 +76,9 @@ public class PixelmonPermsCommand {
     private static LiteralArgumentBuilder<CommandSource> appendRemoveCommand(LiteralArgumentBuilder<CommandSource> command) {
         return command.then(Commands.literal("remove")
                 .then(Commands.literal("message")
-                        .executes(context -> runRemoveCancelMessage(context.getSource())
+                        .then(Commands.argument("index", IntegerArgumentType.integer())
+                                .executes(context -> runRemoveCancelMessage(context.getSource(), IntegerArgumentType.getInteger(context, "index"))
+                                )
                         )
                 )
                 .then(Commands.literal("permission")
@@ -299,7 +301,7 @@ public class PixelmonPermsCommand {
 
 
 
-    private static int runRemoveCancelMessage(CommandSource source) throws CommandSyntaxException {
+    private static int runRemoveCancelMessage(CommandSource source, int index) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
         Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
         if (lookEntity == null) {
@@ -310,8 +312,15 @@ public class PixelmonPermsCommand {
                 source.sendFailure(new StringTextComponent("NPC does not have custom cancel message!!"));
                 return 0;
             }
-            NBTHandler.removeCancelMessage(lookEntity);
-            source.sendSuccess(new StringTextComponent("Removed NPC's custom cancel message."), false);
+//            NBTHandler.removeCancelMessage(lookEntity, index);
+//            source.sendSuccess(new StringTextComponent("Removed NPC's custom cancel message."), false);
+            String[] messages = NBTHandler.getCancelMessages(lookEntity);
+            if (messages.length < (index + 1)) {
+                source.sendFailure(new StringTextComponent("NPC does not have a message at that index!"));
+                return 0;
+            }
+            NBTHandler.removeCancelMessage(lookEntity, index);
+            source.sendSuccess(new StringTextComponent(String.format("Removed NPC's message at index %d.", index)), true);
         }
         else {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));

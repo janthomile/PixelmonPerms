@@ -14,8 +14,8 @@ public class NBTHandler {
     static String nbtFailCommandString = "pixelpermfailcmd";
     static String defaultCancelMessage = "Talk to me later!";
     static String permListDelimiter = ",";
-    static String commandListDelimiter = "||";
-    static String commandListDelimiterRegex = "\\|\\|";
+    static String altListDelimiter = "||";
+    static String altListDelimiterRegex = "\\|\\|";
 
     public static boolean isStringNbt(Entity entity, String search_nbt) {
         CompoundNBT  nbt = entity.getPersistentData();
@@ -71,7 +71,7 @@ public class NBTHandler {
         }
         ArrayList<String> newCommandList = new ArrayList<> (Arrays.asList(getFailCommands(entity)));
         newCommandList.remove(index);
-        setRequiredPermission(entity, String.join(commandListDelimiter, newCommandList));
+        setRequiredPermission(entity, String.join(altListDelimiter, newCommandList));
         if (newCommandList.size() < 1) {
         nbt.remove(nbtFailCommandString);
         }
@@ -80,7 +80,7 @@ public class NBTHandler {
 
     public static String[] getFailCommands(Entity entity) {
         CompoundNBT  nbt = entity.getPersistentData();
-        return parseCommandList(nbt.getString(nbtFailCommandString));
+        return parseAltList(nbt.getString(nbtFailCommandString));
     }
 
     public static String getFailCommand(Entity entity) {
@@ -97,12 +97,19 @@ public class NBTHandler {
             setFailCommand(entity, command);
             return;
         }
-        setFailCommand(entity, getFailCommand(entity).concat(commandListDelimiter).concat(command));
+        setFailCommand(entity, getFailCommand(entity).concat(altListDelimiter).concat(command));
     }
 
     public static boolean hasFailCommand(Entity entity) {
         CompoundNBT  nbt = entity.getPersistentData();
         return nbt.contains(nbtFailCommandString);
+    }
+    public static void appendCancelMessage(Entity entity, String message) {
+        if (!hasCancelMessage(entity)) {
+            setCancelMessage(entity, message);
+            return;
+        }
+        setCancelMessage(entity,getCancelMessage(entity).concat(altListDelimiter).concat(message));
     }
 
     public static void setCancelMessage(Entity entity, String message) {
@@ -114,6 +121,11 @@ public class NBTHandler {
         CompoundNBT  nbt = entity.getPersistentData();
         return nbt.contains(nbtCancelString);
     }
+    public static String[] getCancelMessages(Entity entity) {
+        CompoundNBT  nbt = entity.getPersistentData();
+        return parseAltList(nbt.getString(nbtCancelString));
+    }
+
     public static String getCancelMessage(Entity entity) {
         if (hasCancelMessage(entity)) {
             CompoundNBT  nbt = entity.getPersistentData();
@@ -124,18 +136,23 @@ public class NBTHandler {
         }
     }
 
-    public static boolean removeCancelMessage(Entity entity) {
+    public static boolean removeCancelMessage(Entity entity, int index) {
         CompoundNBT  nbt = entity.getPersistentData();
         if (!nbt.contains(nbtCancelString)) {
             return false;
         }
-        nbt.remove(nbtCancelString);
+        ArrayList<String> newMessageList = new ArrayList<> (Arrays.asList(getFailCommands(entity)));
+        newMessageList.remove(index);
+        setRequiredPermission(entity, String.join(altListDelimiter, newMessageList));
+        if (newMessageList.size() < 1) {
+            nbt.remove(nbtCancelString);
+        }
         return true;
     }
     public static String[] parseStringList(String string, String delimiter) {
         return string.split(delimiter);
     }
-    public static String[] parseCommandList(String string) {
-        return string.split(commandListDelimiterRegex);
+    public static String[] parseAltList(String string) {
+        return string.split(altListDelimiterRegex);
     }
 }

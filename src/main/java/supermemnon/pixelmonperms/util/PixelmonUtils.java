@@ -8,13 +8,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PixelmonUtils {
-    public static void customNpcChat(NPCEntity npc, ServerPlayerEntity player, String message) {
+    public static void customNpcChat(NPCEntity npc, ServerPlayerEntity player, String[] messages) {
+        if (messages.length < 1) {
+            return;
+        }
         List<Dialogue> dialogues = new ArrayList<>();
-        Dialogue messageDialogue = Dialogue.builder()
-                                                .setText(message)
+//        Dialogue messageDialogue = Dialogue.builder()
+//                                                .setText(message)
+//                                                .setName(npc.getName().getString())
+//                                                .build();
+//        dialogues.add(messageDialogue);
+        for (int i = 0; i < messages.length; i++) {
+            Dialogue messageDialogue = Dialogue.builder()
+                                                .setText(FormattingHelper.formatWithAmpersand(messages[i]))
                                                 .setName(npc.getName().getString())
                                                 .build();
-        dialogues.add(messageDialogue);
+            dialogues.add(messageDialogue);
+        }
         Dialogue.setPlayerDialogueData(player, dialogues, true);
     }
 }
