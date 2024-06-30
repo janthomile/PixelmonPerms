@@ -71,7 +71,7 @@ public class NBTHandler {
         }
         ArrayList<String> newCommandList = new ArrayList<> (Arrays.asList(getFailCommands(entity)));
         newCommandList.remove(index);
-        setRequiredPermission(entity, String.join(altListDelimiter, newCommandList));
+        setFailCommand(entity, String.join(altListDelimiter, newCommandList));
         if (newCommandList.size() < 1) {
         nbt.remove(nbtFailCommandString);
         }
