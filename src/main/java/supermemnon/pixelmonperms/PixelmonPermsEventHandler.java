@@ -12,6 +12,7 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.apache.logging.log4j.Level;
 import supermemnon.pixelmonperms.command.PixelmonPermsCommand;
 import supermemnon.pixelmonperms.util.FormattingHelper;
 import supermemnon.pixelmonperms.util.PermUtils;
@@ -51,6 +52,7 @@ public class PixelmonPermsEventHandler {
     public static class ModEvents {
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public static void onNPCBattleEvent(NPCEvent.StartBattle event) {
+            PixelmonPerms.getLOGGER().log(Level.INFO, "NPC BATTLE STARTED");
             if (!NBTHandler.hasRequiredPermission(event.npc)) {
                 return;
             }
