@@ -51,13 +51,18 @@ public class PixelmonPermsEventHandler {
 
     public static class ModEvents {
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public static void onNPCBattleEvent(NPCEvent.StartBattle event) {
+        public static void onNPCBattleEvent(NPCEvent.StartBattle event) throws CommandSyntaxException {
             PixelmonPerms.getLOGGER().log(Level.INFO, "NPC BATTLE STARTED");
             if (!NBTHandler.hasRequiredPermission(event.npc)) {
                 return;
             }
             String[] perms = NBTHandler.getRequiredPermissions(event.npc);
             if (!PermUtils.hasAllRequiredPermissions(event.player, perms)) {
+                PixelmonUtils.customNpcChat(event.npc, (ServerPlayerEntity) event.player, NBTHandler.getCancelMessages(event.npc));
+//                event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc))), event.player.getUUID());
+                if (NBTHandler.hasFailCommand(event.npc)) {
+                    boolean commandSuccess = executeCommandList(event.player.getServer(), event.player, NBTHandler.getFailCommands(event.npc));
+                }
                 event.setCanceled(true);
             }
         }
