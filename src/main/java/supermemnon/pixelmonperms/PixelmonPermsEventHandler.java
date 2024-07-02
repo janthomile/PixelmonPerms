@@ -50,6 +50,16 @@ public class PixelmonPermsEventHandler {
 
     public static class ModEvents {
         @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public static void onNPCBattleEvent(NPCEvent.StartBattle event) {
+            if (!NBTHandler.hasRequiredPermission(event.npc)) {
+                return;
+            }
+            String[] perms = NBTHandler.getRequiredPermissions(event.npc);
+            if (!PermUtils.hasAllRequiredPermissions(event.player, perms)) {
+                event.setCanceled(true);
+            }
+        }
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
         public static void onNPCInteractEvent(NPCEvent.Interact event) throws CommandSyntaxException {
             if (!NBTHandler.hasRequiredPermission(event.npc)) {
                 return;

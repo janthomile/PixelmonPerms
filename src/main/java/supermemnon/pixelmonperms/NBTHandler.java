@@ -141,9 +141,9 @@ public class NBTHandler {
         if (!nbt.contains(nbtCancelString)) {
             return false;
         }
-        ArrayList<String> newMessageList = new ArrayList<> (Arrays.asList(getFailCommands(entity)));
+        ArrayList<String> newMessageList = new ArrayList<> (Arrays.asList(getCancelMessages(entity)));
         newMessageList.remove(index);
-        setRequiredPermission(entity, String.join(altListDelimiter, newMessageList));
+        setCancelMessage(entity, String.join(altListDelimiter, newMessageList));
         if (newMessageList.size() < 1) {
             nbt.remove(nbtCancelString);
         }
