@@ -52,7 +52,6 @@ public class PixelmonPermsEventHandler {
     public static class ModEvents {
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public static void onNPCBattleEvent(NPCEvent.StartBattle event) throws CommandSyntaxException {
-            PixelmonPerms.getLOGGER().log(Level.INFO, "NPC BATTLE STARTED");
             if (!NBTHandler.hasRequiredPermission(event.npc)) {
                 return;
             }
