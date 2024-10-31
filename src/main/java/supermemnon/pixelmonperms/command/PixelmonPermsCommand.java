@@ -12,6 +12,9 @@ import com.pixelmonmod.pixelmon.entities.npcs.NPCEntity;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
+import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.command.arguments.EntitySelector;
+import net.minecraft.command.arguments.UUIDArgument;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
@@ -32,7 +35,6 @@ public class PixelmonPermsCommand {
         commandStructure = appendSetCommand(commandStructure);
         commandStructure = appendGetCommand(commandStructure);
         commandStructure = appendRemoveCommand(commandStructure);
-        commandStructure = appendNPCBattleCommand(commandStructure);
         dispatcher.register(commandStructure);
     }
 
@@ -96,15 +98,7 @@ public class PixelmonPermsCommand {
         );
     }
 
-    private static LiteralArgumentBuilder<CommandSource> appendNPCBattleCommand(LiteralArgumentBuilder<CommandSource> command) {
-        return command.then(Commands.literal("npcbattle")
-                .then(Commands.argument("player",  StringArgumentType.word())
-                        .then(Commands.argument("uuid", StringArgumentType.word())
-                            .executes(context -> runNpcBattle(context.getSource(), StringArgumentType.getString(context, "player"), StringArgumentType.getString(context, "uuid")))
-                        )
-                )
-        );
-    }
+
 
     private static int runGetFailCommand(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
@@ -167,40 +161,7 @@ public class PixelmonPermsCommand {
         return 1;
     }
 
-    private static int runNpcBattle(CommandSource source, String playerName, String npcUUID) throws CommandSyntaxException {
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        ServerWorld world = server.overworld().getWorldServer();
-        ServerPlayerEntity playerBattler = server.getPlayerList().getPlayerByName(playerName);
-        UUID entityUUID = UUID.fromString(npcUUID);
-        Entity entity = world.getEntity(entityUUID);
-        if (playerBattler == null) {
-            source.sendFailure(new StringTextComponent("No player with that name found."));
-            return 0;
-        }
-        else if (entity == null) {
-            source.sendFailure(new StringTextComponent("No entity with that UUID found."));
-            return 0;
-        }
-        else if (!(entity instanceof NPCEntity)) {
-            source.sendFailure(new StringTextComponent("Entity is not an NPC!"));
-            return 0;
-        }
-        else {
-            if (!(entity instanceof NPCTrainer)) {
-                source.sendFailure(new StringTextComponent("NPC is not a trainer!"));
-                return 0;
-            }
-            NPCTrainer trainer = (NPCTrainer) entity;
-            Pokemon startingPixelmon = StorageProxy.getParty(playerBattler).getSelectedPokemon();
-            if (startingPixelmon == null) {
-                source.sendFailure(new StringTextComponent("Trainer has no pokemon!!"));
-                return 0;
-            }
-            TeamSelectionRegistry.builder().members(trainer, playerBattler).showRules().showOpponentTeam().closeable(true).battleRules(trainer.battleRules).start();
-            PixelmonPerms.getLOGGER().log(Level.INFO, String.format("Started NPC Battle between %s and %s", playerName, trainer.getName().getString()));
-        }
-        return 1;
-    }
+
     private static int runGetPermission(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
         Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
