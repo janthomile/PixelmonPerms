@@ -18,6 +18,7 @@ Base command is `/pixelmonperms` which should be followed by `get`, `set`, or `r
 * `message`
 * `permission`
 * `failcommand`
+
 followed by an whole-number `index` (seen through the `get` subcommand) to remove an entry from any of the above lists.
 
 Cancel messages and fail commands show/execute under the same condition, being when a player does not have required permissions as set on an NPC.
