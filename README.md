@@ -1,7 +1,12 @@
 # PixelmonPerms
 Helper mod that restricts parts of the Pixelmon mod based on permission nodes. Made for forge 1.16.5.
 
-Commands:
+## Features
+* Restrict NPC interactions and Trainer battles based on permission nodes!
+* Add dialogues that show when a permission node isn't met!
+* Add commands to execute when a permission node isn't met!
+
+## Commands
 Base command is `/pixelmonperms` which should be followed by `get`, `set`, or `remove`.
 
 `get` can be followed by:
