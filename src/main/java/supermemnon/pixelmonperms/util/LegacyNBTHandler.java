@@ -23,6 +23,10 @@ public class LegacyNBTHandler {
         return true;
     }
 
+    public static boolean entityHasLegacyFormat(Entity entity) {
+        return hasRequiredPermission(entity) || hasCancelMessage(entity) || hasFailCommand(entity);
+    }
+
     public static boolean isStringNbt(Entity entity, String search_nbt) {
         CompoundNBT  nbt = entity.getPersistentData();
         return nbt.getTagType(search_nbt) == Constants.NBT.TAG_STRING;

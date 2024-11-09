@@ -1,30 +1,179 @@
 package supermemnon.pixelmonperms.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCEntity;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
+import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.command.arguments.SuggestionProviders;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import supermemnon.pixelmonperms.util.LegacyNBTHandler;
 import supermemnon.pixelmonperms.util.FormattingHelper;
+import supermemnon.pixelmonperms.util.NBTHandler;
 import supermemnon.pixelmonperms.util.RayTraceHelper;
 
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
 public class PixelmonPermsCommand {
+    private static final String[] entryCommandOptions = {"eval", "permission", "message", "command"};
+    private static final String[] entryListOptions = {"permission", "message", "command"};
+    private static final String[] evalCommandOptions = {"and", "or", "not"};
+    private static CompletableFuture<Suggestions> getSuggestionsFromList(SuggestionsBuilder builder, String[] options) {
+        for (String suggestion : options) {
+            builder.suggest(suggestion);
+        }
+        return builder.buildFuture();
+    }
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
         LiteralArgumentBuilder<CommandSource> commandStructure = Commands.literal("pixelmonperms").requires(source -> source.hasPermission(2));
         commandStructure = appendSetCommand(commandStructure);
         commandStructure = appendGetCommand(commandStructure);
         commandStructure = appendRemoveCommand(commandStructure);
+        commandStructure = appendDupeNPCCommand(commandStructure);
         dispatcher.register(commandStructure);
     }
+
+    private static LiteralArgumentBuilder<CommandSource> appendEntryCommand(LiteralArgumentBuilder<CommandSource> command) {
+        return command.then(Commands.literal("entry")
+                .then(Commands.literal("list")
+                        .executes(context -> runGetEntryList(context.getSource()))
+                )
+                .then(Commands.argument("index", IntegerArgumentType.integer())
+                        .then(Commands.literal("get")
+                                .then(Commands.argument("property", StringArgumentType.word())
+                                        .suggests(((context, builder) -> getSuggestionsFromList(builder, entryCommandOptions)))
+                                        .executes(context -> runGetEntryProperty(context.getSource(), IntegerArgumentType.getInteger(context, "index"), StringArgumentType.getString(context, "property")))
+                                )
+                        )
+                        .then(Commands.literal("set")
+                                .then(Commands.argument("property", StringArgumentType.word())
+                                        .suggests(((context, builder) -> getSuggestionsFromList(builder, entryListOptions)))
+                                        .then(Commands.argument("value", StringArgumentType.greedyString())
+                                                .executes(context -> runAddEntryProperty(context.getSource(), IntegerArgumentType.getInteger(context, "index"), StringArgumentType.getString(context, "property"), StringArgumentType.getString(context, "value")))
+                                        )
+                                )
+                                .then(Commands.literal("eval")
+                                        .then(Commands.argument("value", StringArgumentType.word())
+                                                .suggests(((context, builder) -> getSuggestionsFromList(builder, evalCommandOptions)))
+                                                .executes(context -> runAddEntryProperty(context.getSource(), IntegerArgumentType.getInteger(context, "index"), "eval", StringArgumentType.getString(context, "value")))
+                                        )
+                                )
+                        )
+                        .then(Commands.literal("remove")
+                                .then(Commands.argument("property", StringArgumentType.word())
+                                        .suggests(((context, builder) -> getSuggestionsFromList(builder, entryListOptions)))
+                                        .executes(context -> runGetEntryProperty(context.getSource(), IntegerArgumentType.getInteger(context, "index"), StringArgumentType.getString(context, "property")))
+                                )
+                        )
+                )
+
+        );
+    }
+
+    private static int runGetEntryList(CommandSource source) {
+        return 1;
+    }
+
+    private static int runGetEntryProperty(CommandSource source, int entryIndex, String property) throws CommandSyntaxException {
+        ServerPlayerEntity player = source.getPlayerOrException();
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        if (!(lookEntity instanceof NPCEntity)) {
+            source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
+            return 0;
+        }
+        String result = FormattingHelper.getEntryPropertyString(lookEntity, entryIndex, property);
+        if (result == "") {
+            source.sendFailure(new StringTextComponent("Entry or property not found!"));
+            return 0;
+        }
+        source.sendSuccess(new StringTextComponent(result), true);
+        return 1;
+    }
+
+    private static int runAddEntryProperty(CommandSource source, int entryIndex, String property, String value) throws CommandSyntaxException {
+        ServerPlayerEntity player = source.getPlayerOrException();
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        if (!(lookEntity instanceof NPCEntity)) {
+            source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
+            return 0;
+        }
+        boolean success = false;
+        switch (property) {
+            case  "eval": {
+                int eval = NBTHandler.EVAL.getValueFromName(value);
+                if (eval == -1) {
+                    source.sendFailure(new StringTextComponent("Invalid eval input!"));
+                    return 0;
+                }
+                success = NBTHandler.setEntryEval(lookEntity, entryIndex, eval);
+            }
+            case  "permission": case "message": case "command": {
+                success = NBTHandler.appendEntryPropertyItem(lookEntity, entryIndex, property, value);
+            }
+        }
+        if (!success) {
+            source.sendFailure(new StringTextComponent("Entry or property not found!"));
+            return 0;
+        }
+        return 1;
+    }
+
+    private static LiteralArgumentBuilder<CommandSource> appendDupeNPCCommand(LiteralArgumentBuilder<CommandSource> command) {
+        return command.then(Commands.literal("duplicatenpc")
+                .executes(context -> runDupeNPCCommand(context.getSource()))
+        );
+    }
+
+
+    private static int runSweepReformat(CommandSource source) throws CommandSyntaxException {
+        ServerWorld world = source.getLevel();
+        for (NPCEntity npc : world.getEntities().filter(entity -> entity instanceof NPCEntity).map(entity -> (NPCEntity) entity).collect(Collectors.toList())) {
+            if (LegacyNBTHandler.entityHasLegacyFormat(npc)) {
+                LegacyNBTHandler.refactorLegacyFormat(npc, false);
+            }
+        }
+        return 1;
+    }
+
+
+    private static int runDupeNPCCommand(CommandSource source) throws CommandSyntaxException {
+        ServerPlayerEntity player = source.getPlayerOrException();
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        if (lookEntity == null) {
+            source.sendFailure(new StringTextComponent("No entity found."));
+            return 0;
+        }
+        Entity dupeEntity = lookEntity.getType().create(lookEntity.level);
+        if (dupeEntity == null) {
+            return 0;
+        }
+        CompoundNBT entityNbt = new CompoundNBT();
+        lookEntity.saveWithoutId(entityNbt);
+        dupeEntity.load(entityNbt);
+        dupeEntity.setUUID(UUID.randomUUID());
+        dupeEntity.setPose(lookEntity.getPose());
+        lookEntity.level.addFreshEntity(dupeEntity);
+        return 1;
+    }
+
+    ///  ///  ///  ///  ///
+    ///LEGACY FORMAT///
+    ///  ///  ///  ///  ///
 
     private static LiteralArgumentBuilder<CommandSource> appendSetCommand(LiteralArgumentBuilder<CommandSource> command) {
            return command.then(Commands.literal("set")
@@ -84,31 +233,6 @@ public class PixelmonPermsCommand {
                         )
                 )
         );
-    }
-
-    private static LiteralArgumentBuilder<CommandSource> appendDupeNPCCommand(LiteralArgumentBuilder<CommandSource> command) {
-        return command.then(Commands.literal("duplicatenpc")
-                .executes(context -> runDupeNPCCommand(context.getSource()))
-        );
-    }
-
-    private static int runDupeNPCCommand(CommandSource source) throws CommandSyntaxException {
-        ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
-        if (lookEntity == null) {
-            source.sendFailure(new StringTextComponent("No entity found."));
-            return 0;
-        }
-        Entity dupeEntity = lookEntity.getType().create(lookEntity.level);
-        if (dupeEntity == null) {
-            return 0;
-        }
-        CompoundNBT entityNbt = new CompoundNBT();
-        lookEntity.saveWithoutId(entityNbt);
-        dupeEntity.load(entityNbt);
-        dupeEntity.setPose(lookEntity.getPose());
-        lookEntity.level.addFreshEntity(dupeEntity);
-        return 1;
     }
 
     private static int runGetFailCommand(CommandSource source) throws CommandSyntaxException {
@@ -299,5 +423,6 @@ public class PixelmonPermsCommand {
         }
         return 1;
     }
+
 
 }
