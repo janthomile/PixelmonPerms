@@ -49,6 +49,13 @@ public class PixelmonPermsCommand {
                 .then(Commands.literal("list")
                         .executes(context -> runGetEntryList(context.getSource()))
                 )
+                .then(Commands.literal("swap")
+                        .then(Commands.argument("firstIndex", IntegerArgumentType.integer())
+                                .then(Commands.argument("secondIndex", IntegerArgumentType.integer())
+                                        .executes(context -> runSwapEntry(context.getSource(), IntegerArgumentType.getInteger(context, "firstIndex"), IntegerArgumentType.getInteger(context, "secondIndex")))
+                                )
+                        )
+                )
                 .then(Commands.literal("create")
                         .executes(context -> runCreateEntry(context.getSource()))
                 )
@@ -291,7 +298,7 @@ public class PixelmonPermsCommand {
         ServerWorld world = source.getLevel();
         int count = 0;
         for (NPCEntity npc : world.getEntities().filter(entity -> entity instanceof NPCEntity).map(entity -> (NPCEntity) entity).collect(Collectors.toList())) {
-            if (LegacyNBTHandler.entityHasLegacyFormat(npc) && !NBTHandler.hasEntryList(npc)) {
+            if (LegacyNBTHandler.entityHasLegacyFormat(npc) && NBTHandler.hasEntryList(npc)) {
                 LegacyNBTHandler.removeLegacyData(npc);
                 count++;
             }

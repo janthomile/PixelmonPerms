@@ -21,8 +21,8 @@ public class FormattingHelper {
     }
 
     public static String getEntryQuickFormat(CompoundNBT entry) {
-        String str = "{%s Permissions, %s Messages, %s Commands}";
-        str = String.format(str, entry.getList(NBTHandler.permListKey, NBTHandler.STRING_NBT_TYPE).size(),
+        String str = "{EVAL %s, %s Permissions, %s Messages, %s Commands}";
+        str = String.format(str, NBTHandler.EVAL.getNameFromValue(entry.getInt(NBTHandler.evalKey)),entry.getList(NBTHandler.permListKey, NBTHandler.STRING_NBT_TYPE).size(),
                 entry.getList(NBTHandler.msgListKey, NBTHandler.STRING_NBT_TYPE).size(),
                 entry.getList(NBTHandler.cmdListKey, NBTHandler.STRING_NBT_TYPE).size());
         return str;
@@ -42,7 +42,7 @@ public class FormattingHelper {
     }
 
     public static String getEntryPropertyString(Entity entity, int entryIndex, String property) {
-        String str = String.format("%s:\n", property.toUpperCase());
+        String str = String.format("ENTRY %s %s:\n", entryIndex,  property.toUpperCase());
         switch (property) {
             case "eval": {
                 int eval = NBTHandler.getEntryEval(entity, entryIndex);
