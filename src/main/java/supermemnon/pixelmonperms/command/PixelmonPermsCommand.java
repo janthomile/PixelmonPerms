@@ -26,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class PixelmonPermsCommand {
+    private static final double maxTargetDistance = 16.0;
     private static final String[] entryCommandOptions = {"eval", "permission", "message", "command"};
     private static final String[] entryListOptions = {"permission", "message", "command"};
     private static final String[] evalCommandOptions = {"AND", "OR", "NOT"};
@@ -71,7 +72,7 @@ public class PixelmonPermsCommand {
                                         .executes(context -> runGetEntryProperty(context.getSource(), IntegerArgumentType.getInteger(context, "index"), StringArgumentType.getString(context, "property")))
                                 )
                         )
-                        .then(Commands.literal("set")
+                        .then(Commands.literal("apply")
                                 .then(Commands.argument("property", StringArgumentType.word())
                                         .suggests(((context, builder) -> getSuggestionsFromList(builder, entryListOptions)))
                                         .then(Commands.argument("value", StringArgumentType.greedyString())
@@ -124,7 +125,7 @@ public class PixelmonPermsCommand {
 
     private static int runGetEntryList(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
         if (!(lookEntity instanceof NPCEntity)) {
             source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
             return 0;
@@ -140,7 +141,7 @@ public class PixelmonPermsCommand {
 
     private static int runCreateEntry(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
         if (!(lookEntity instanceof NPCEntity)) {
             source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
             return 0;
@@ -158,7 +159,7 @@ public class PixelmonPermsCommand {
 
     private static int runRemoveEntry(CommandSource source, int index) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
         if (!(lookEntity instanceof NPCEntity)) {
             source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
             return 0;
@@ -174,7 +175,7 @@ public class PixelmonPermsCommand {
 
     private static int runSwapEntry(CommandSource source, int a, int b) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
         if (!(lookEntity instanceof NPCEntity)) {
             source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
             return 0;
@@ -190,7 +191,7 @@ public class PixelmonPermsCommand {
 
     private static int runGetEntryProperty(CommandSource source, int entryIndex, String property) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
         if (!(lookEntity instanceof NPCEntity)) {
             source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
             return 0;
@@ -206,7 +207,7 @@ public class PixelmonPermsCommand {
 
     private static int runAddEntryProperty(CommandSource source, int entryIndex, String property, String value) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
         if (!(lookEntity instanceof NPCEntity)) {
             source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
             return 0;
@@ -238,7 +239,7 @@ public class PixelmonPermsCommand {
 
     private static int runRemoveEntryProperty(CommandSource source, int entryIndex, String property, int index) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
         if (!(lookEntity instanceof NPCEntity)) {
             source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
             return 0;
@@ -256,7 +257,7 @@ public class PixelmonPermsCommand {
 
     private static int runReformatNPC(CommandSource source, boolean overwrite) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
         if (lookEntity == null) {
             source.sendFailure(new StringTextComponent("No entity found."));
             return 0;
@@ -310,7 +311,7 @@ public class PixelmonPermsCommand {
 
     private static int runDupeNPCCommand(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
-        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
         if (lookEntity == null) {
             source.sendFailure(new StringTextComponent("No entity found."));
             return 0;
@@ -404,7 +405,7 @@ public class PixelmonPermsCommand {
 
         private static int runGetFailCommand(CommandSource source) throws CommandSyntaxException {
             ServerPlayerEntity player = source.getPlayerOrException();
-            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
             if (lookEntity == null) {
                 source.sendFailure(new StringTextComponent("No entity found."));
             }
@@ -424,7 +425,7 @@ public class PixelmonPermsCommand {
 
         private static int runSetFailCommand(CommandSource source, String command) throws CommandSyntaxException {
             ServerPlayerEntity player = source.getPlayerOrException();
-            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
             if (lookEntity == null) {
                 source.sendFailure(new StringTextComponent("No entity found."));
             }
@@ -440,7 +441,7 @@ public class PixelmonPermsCommand {
 
         private static int runRemoveFailCommand(CommandSource source, int index) throws CommandSyntaxException {
             ServerPlayerEntity player = source.getPlayerOrException();
-            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
             if (lookEntity == null) {
                 source.sendFailure(new StringTextComponent("No entity found."));
             }
@@ -465,7 +466,7 @@ public class PixelmonPermsCommand {
 
         private static int runGetPermission(CommandSource source) throws CommandSyntaxException {
             ServerPlayerEntity player = source.getPlayerOrException();
-            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
     //        String perm = StringArgumentType.getString(context.getSource());
             if (lookEntity == null) {
                 source.sendFailure(new StringTextComponent("No entity found."));
@@ -486,7 +487,7 @@ public class PixelmonPermsCommand {
 
         private static int runSetPermission(CommandSource source, String permission) throws CommandSyntaxException {
             ServerPlayerEntity player = source.getPlayerOrException();
-            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
             if (lookEntity == null) {
                 source.sendFailure(new StringTextComponent("No entity found."));
             }
@@ -502,7 +503,7 @@ public class PixelmonPermsCommand {
 
         private static int runRemovePermission(CommandSource source, int index) throws CommandSyntaxException {
             ServerPlayerEntity player = source.getPlayerOrException();
-            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
             if (lookEntity == null) {
                 source.sendFailure(new StringTextComponent("No entity found."));
                 return 0;
@@ -527,7 +528,7 @@ public class PixelmonPermsCommand {
 
         private static int runGetCancelMessage(CommandSource source) throws CommandSyntaxException {
             ServerPlayerEntity player = source.getPlayerOrException();
-            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
             if (lookEntity == null) {
                 source.sendFailure(new StringTextComponent("No entity found."));
             }
@@ -547,7 +548,7 @@ public class PixelmonPermsCommand {
 
         private static int runSetCancelMessage(CommandSource source, String cancelMessage) throws CommandSyntaxException {
             ServerPlayerEntity player = source.getPlayerOrException();
-            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
             if (lookEntity == null) {
                 source.sendFailure(new StringTextComponent("No entity found."));
             }
@@ -563,7 +564,7 @@ public class PixelmonPermsCommand {
 
         private static int runRemoveCancelMessage(CommandSource source, int index) throws CommandSyntaxException {
             ServerPlayerEntity player = source.getPlayerOrException();
-            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+            Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, maxTargetDistance);
             if (lookEntity == null) {
                 source.sendFailure(new StringTextComponent("No entity found."));
             }
