@@ -1,6 +1,7 @@
 package supermemnon.pixelmonperms.util;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 
 public class FormattingHelper {
@@ -19,6 +20,27 @@ public class FormattingHelper {
         return returnString;
     }
 
+    public static String getEntryQuickFormat(CompoundNBT entry) {
+        String str = "{%s Permissions, %s Messages, %s Commands}";
+        str = String.format(str, entry.getList(NBTHandler.permListKey, NBTHandler.STRING_NBT_TYPE).size(),
+                entry.getList(NBTHandler.msgListKey, NBTHandler.STRING_NBT_TYPE).size(),
+                entry.getList(NBTHandler.cmdListKey, NBTHandler.STRING_NBT_TYPE).size());
+        return str;
+    }
+
+    public static String getEntryListFormatted(Entity entity) {
+        ListNBT entryList = NBTHandler.getEntryList(entity);
+        if (entryList == null) {
+            return "";
+        }
+        String[] strList = new String[entryList.size()];
+        for (int i = 0; i < entryList.size(); i++) {
+            strList[i] = getEntryQuickFormat(entryList.getCompound(i));
+        }
+        String str = String.format("Entries:\n%s", formatIndexedStringList(strList));
+        return str;
+    }
+
     public static String getEntryPropertyString(Entity entity, int entryIndex, String property) {
         String str = String.format("%s:\n", property.toUpperCase());
         switch (property) {
@@ -34,10 +56,7 @@ public class FormattingHelper {
                 if (list == null) {
                     return "";
                 }
-                String[] strList = new String[list.size()];
-                for (int i = 0; i < list.size(); i++) {
-                    strList[i] = list.getString(i);
-                }
+                String[] strList = NBTHandler.propertyListToArray(list);
                 str = str.concat("\n").concat(formatIndexedStringList(strList));
             }
         }

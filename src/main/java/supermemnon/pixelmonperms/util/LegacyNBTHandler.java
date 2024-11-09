@@ -2,6 +2,8 @@ package supermemnon.pixelmonperms.util;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.StringNBT;
 import net.minecraftforge.common.util.Constants;
 
 import java.util.ArrayList;
@@ -17,10 +19,31 @@ public class LegacyNBTHandler {
     static String altListDelimiterRegex = "\\|\\|";
 
     public static boolean refactorLegacyFormat(Entity entity, boolean forceRefactor) {
-        if (entity.getPersistentData().contains(NBTHandler.entryListKey) && !forceRefactor) {
+        if (!NBTHandler.hasEntryList(entity)) {
+            NBTHandler.initEntryList(entity);
+        }
+        else if (!forceRefactor) {
             return false;
         }
+
+        CompoundNBT entry = NBTHandler.createEntry(
+                NBTHandler.EVAL.NOT.value,
+                createListNbt(getRequiredPermissions(entity)),
+                createListNbt(getCancelMessages(entity)),
+                createListNbt(getFailCommands(entity))
+        );
+
+        NBTHandler.appendEntry(entity, entry);
+
         return true;
+    }
+
+    public static ListNBT createListNbt(String[] array) {
+        ListNBT list = new ListNBT();
+        for (int i = 0; i < array.length; i++) {
+            list.add(StringNBT.valueOf(array[i]));
+        }
+        return list;
     }
 
     public static boolean entityHasLegacyFormat(Entity entity) {

@@ -10,7 +10,16 @@ import javax.annotation.Nullable;
 
 public class NBTHandler {
     public enum EVAL {
-        AND(0), OR(1), NOT(2);
+        AND(1), OR(2), NOT(3);
+        public static EVAL getFromValue(int value) {
+            for (EVAL eval  : EVAL.values())
+            {
+                if (eval.value == value) {
+                    return eval;
+                }
+            }
+            return AND;
+        }
         public static int getValueFromName(String name) {
             for (EVAL eval  : EVAL.values())
             {
@@ -75,9 +84,10 @@ public class NBTHandler {
         return createEntry(EVAL.AND.value, new ListNBT(), new ListNBT(), new ListNBT());
     }
 
+
     public static CompoundNBT createEntry(int eval, ListNBT permList, ListNBT msgList, ListNBT cmdList) {
         CompoundNBT entry = new CompoundNBT();
-        entry.putInt(evalKey, EVAL.AND.value);
+        entry.putInt(evalKey, eval);
         entry.put(permListKey, permList);
         entry.put(msgListKey, msgList);
         entry.put(cmdListKey, cmdList);
@@ -128,6 +138,15 @@ public class NBTHandler {
         return entry.getList(property, STRING_NBT_TYPE);
     }
 
+    public static String[] propertyListToArray(ListNBT list) {
+        String[] strList = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            strList[i] = list.getString(i);
+        }
+        return strList;
+    }
+
+
     public static boolean removeEntryPropertyItem(Entity entity, int entryIndex, String property, int index) {
         ListNBT listProperty = getEntryListProperty(entity, entryIndex, property);
         if (listProperty == null || listProperty.size() < (index+1)) {
@@ -140,6 +159,24 @@ public class NBTHandler {
     public static boolean appendEntryPropertyItem(Entity entity, int entryIndex, String property, String newString) {
         ListNBT listProperty = getEntryListProperty(entity, entryIndex, property);
         listProperty.add(StringNBT.valueOf(newString));
+        return true;
+    }
+
+    public static boolean appendEntry(Entity entity, CompoundNBT entry) {
+        ListNBT list = getEntryList(entity);
+        if (list == null) {
+            return false;
+        }
+        list.add(entry);
+        return true;
+    }
+
+    public static boolean removeEntry(Entity entity, int index) {
+        ListNBT list = getEntryList(entity);
+        if (list == null || list.size() < (index+1)) {
+            return false;
+        }
+        list.remove(index);
         return true;
     }
 
