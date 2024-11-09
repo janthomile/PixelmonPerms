@@ -180,7 +180,7 @@ public class NBTHandler {
         return true;
     }
 
-    public static boolean swapEntryPositions(Entity entity, String key, int a, int b) {
+    public static boolean swapEntryPositions(Entity entity, int a, int b) {
         ListNBT list = getEntryList(entity);
         if (list == null || list.size() < (a+1) || list.size() < (b+1)) {
             return false;

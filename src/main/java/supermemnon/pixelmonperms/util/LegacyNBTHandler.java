@@ -41,9 +41,19 @@ public class LegacyNBTHandler {
     public static ListNBT createListNbt(String[] array) {
         ListNBT list = new ListNBT();
         for (int i = 0; i < array.length; i++) {
+            if (array[i].equals("")) {
+                continue;
+            }
             list.add(StringNBT.valueOf(array[i]));
         }
         return list;
+    }
+
+    public static void removeLegacyData(Entity entity) {
+        CompoundNBT  nbt = entity.getPersistentData();
+        nbt.remove(nbtPermString);
+        nbt.remove(nbtCancelString);
+        nbt.remove(nbtFailCommandString);
     }
 
     public static boolean entityHasLegacyFormat(Entity entity) {

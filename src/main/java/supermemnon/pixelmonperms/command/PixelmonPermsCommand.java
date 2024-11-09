@@ -91,6 +91,30 @@ public class PixelmonPermsCommand {
         );
     }
 
+    private static LiteralArgumentBuilder<CommandSource> appendDupeNPCCommand(LiteralArgumentBuilder<CommandSource> command) {
+        return command.then(Commands.literal("duplicatenpc")
+                .executes(context -> runDupeNPCCommand(context.getSource()))
+        );
+    }
+    private static LiteralArgumentBuilder<CommandSource> appendReformatCommand(LiteralArgumentBuilder<CommandSource> command) {
+        return command.then(Commands.literal("reformat")
+                .then(Commands.literal("npc")
+                        .then(Commands.argument("overwrite", BoolArgumentType.bool())
+                                .executes(context -> runReformatNPC(context.getSource(), BoolArgumentType.getBool(context, "overwrite")))
+                        )
+                )
+                .then(Commands.literal("sweepReformat")
+                        .then(Commands.argument("overwrite", BoolArgumentType.bool())
+                                .executes(context -> runSweepReformat(context.getSource(), BoolArgumentType.getBool(context, "overwrite")))
+                        )
+                        .executes(context -> runSweepReformat(context.getSource(), false))
+                )
+                .then(Commands.literal("sweepClearLegacy")
+                        .executes(context -> runSweepClearLegacy(context.getSource()))
+                )
+        );
+    }
+
     private static int runGetEntryList(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
         Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
@@ -103,7 +127,7 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entries found!"));
             return 0;
         }
-        source.sendSuccess(new StringTextComponent(list), true);
+        source.sendSuccess(new StringTextComponent(list), false);
         return 1;
     }
 
@@ -116,10 +140,10 @@ public class PixelmonPermsCommand {
         }
         if (!NBTHandler.hasEntryList(lookEntity)) {
             NBTHandler.initEntryList(lookEntity);
-            source.sendSuccess(new StringTextComponent("Initialized NPC and added new entry!"), true);
+            source.sendSuccess(new StringTextComponent("Initialized NPC and added new entry!"), false);
         }
         else {
-            source.sendSuccess(new StringTextComponent("Added new entry!"), true);
+            source.sendSuccess(new StringTextComponent("Added new entry!"), false);
         }
         NBTHandler.appendEntry(lookEntity, NBTHandler.createEntry());
         return 1;
@@ -137,11 +161,27 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("That entry does not exist!"));
             return 0;
         }
-        source.sendSuccess(new StringTextComponent(String.format("Removed entry at index %s!", index)), true);
+        source.sendSuccess(new StringTextComponent(String.format("Removed entry at index %s!", index)), false);
         return 1;
     }
 
-        private static int runGetEntryProperty(CommandSource source, int entryIndex, String property) throws CommandSyntaxException {
+    private static int runSwapEntry(CommandSource source, int a, int b) throws CommandSyntaxException {
+        ServerPlayerEntity player = source.getPlayerOrException();
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        if (!(lookEntity instanceof NPCEntity)) {
+            source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
+            return 0;
+        }
+        boolean success = NBTHandler.swapEntryPositions(lookEntity,a,b);
+        if (!success) {
+            source.sendFailure(new StringTextComponent("Invalid entry or entries!"));
+            return 0;
+        }
+        source.sendSuccess(new StringTextComponent(String.format("Swapped entries at positions %s and %s!", a, b)), false);
+        return 1;
+    }
+
+    private static int runGetEntryProperty(CommandSource source, int entryIndex, String property) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
         Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
         if (!(lookEntity instanceof NPCEntity)) {
@@ -153,7 +193,7 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("Entry or property not found!"));
             return 0;
         }
-        source.sendSuccess(new StringTextComponent(result), true);
+        source.sendSuccess(new StringTextComponent(result), false);
         return 1;
     }
 
@@ -173,7 +213,7 @@ public class PixelmonPermsCommand {
                     return 0;
                 }
                 if (NBTHandler.setEntryEval(lookEntity, entryIndex, eval)) {
-                    source.sendSuccess(new StringTextComponent(String.format("Assigned EVAL: %s to entry %s successfully!", value, entryIndex)), true);
+                    source.sendSuccess(new StringTextComponent(String.format("Assigned EVAL: %s to entry %s successfully!", value, entryIndex)), false);
                     return 1;
                 }
             }
@@ -185,7 +225,7 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("Entry or property not found!"));
             return 0;
         }
-        source.sendSuccess(new StringTextComponent(String.format("Added new %s to entry %s successfully!", property, entryIndex)), true);
+        source.sendSuccess(new StringTextComponent(String.format("Added new %s to entry %s successfully!", property, entryIndex)), false);
         return 1;
     }
 
@@ -201,32 +241,13 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("Entry or property not found!"));
             return 0;
         }
-        source.sendSuccess(new StringTextComponent(String.format("Removed entry %s's %s at index %s successfully!", entryIndex, property, index)), true);
+        source.sendSuccess(new StringTextComponent(String.format("Removed entry %s's %s at index %s successfully!", entryIndex, property, index)), false);
         return 1;
     }
 
-    private static LiteralArgumentBuilder<CommandSource> appendDupeNPCCommand(LiteralArgumentBuilder<CommandSource> command) {
-        return command.then(Commands.literal("duplicatenpc")
-                .executes(context -> runDupeNPCCommand(context.getSource()))
-        );
-    }
-    private static LiteralArgumentBuilder<CommandSource> appendReformatCommand(LiteralArgumentBuilder<CommandSource> command) {
-        return command.then(Commands.literal("reformat")
-                .then(Commands.literal("npc")
-                        .executes(context -> runReformatNPC(context.getSource()))
-                )
-                .then(Commands.literal("sweep")
-                        .then(Commands.argument("overwrite", BoolArgumentType.bool())
-                                .then(Commands.argument("clearLegacyData", BoolArgumentType.bool())
-                                        .executes(context -> runSweepReformat(context.getSource(), BoolArgumentType.getBool(context, "overwrite"), BoolArgumentType.getBool(context, "clearLegacyData")))
-                                )
-                        )
-                        .executes(context -> runSweepReformat(context.getSource(), false, false))
-                )
-        );
-    }
 
-    private static int runReformatNPC(CommandSource source) throws CommandSyntaxException {
+
+    private static int runReformatNPC(CommandSource source, boolean overwrite) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
         Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
         if (lookEntity == null) {
@@ -237,7 +258,7 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));
             return 0;
         }
-        boolean success = LegacyNBTHandler.refactorLegacyFormat(lookEntity, false);
+        boolean success = LegacyNBTHandler.refactorLegacyFormat(lookEntity, overwrite);
         if (!success) {
             source.sendFailure(new StringTextComponent("Error reformatting NPC!"));
             return 0;
@@ -247,7 +268,7 @@ public class PixelmonPermsCommand {
     }
 
 
-    private static int runSweepReformat(CommandSource source, boolean overwrite, boolean clearLegacy) throws CommandSyntaxException {
+    private static int runSweepReformat(CommandSource source, boolean overwrite) throws CommandSyntaxException {
         ServerWorld world = source.getLevel();
         int successCount = 0;
         int failCount = 0;
@@ -263,6 +284,19 @@ public class PixelmonPermsCommand {
             }
         }
         source.sendSuccess(new StringTextComponent(String.format("Finished Reformat Sweep with %s Successes, %s Failures", successCount, failCount)), true);
+        return 1;
+    }
+
+    private static int runSweepClearLegacy(CommandSource source) throws CommandSyntaxException {
+        ServerWorld world = source.getLevel();
+        int count = 0;
+        for (NPCEntity npc : world.getEntities().filter(entity -> entity instanceof NPCEntity).map(entity -> (NPCEntity) entity).collect(Collectors.toList())) {
+            if (LegacyNBTHandler.entityHasLegacyFormat(npc) && !NBTHandler.hasEntryList(npc)) {
+                LegacyNBTHandler.removeLegacyData(npc);
+                count++;
+            }
+        }
+        source.sendSuccess(new StringTextComponent(String.format("Finished Legacy Data Clear Sweep with on %s npcs", count)), true);
         return 1;
     }
 

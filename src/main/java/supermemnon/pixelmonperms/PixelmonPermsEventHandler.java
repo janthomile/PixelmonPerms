@@ -16,11 +16,6 @@ import net.minecraftforge.fml.common.Mod;
 import supermemnon.pixelmonperms.command.PixelmonPermsCommand;
 import supermemnon.pixelmonperms.util.*;
 
-import static supermemnon.pixelmonperms.util.CommandUtils.executeCommandList;
-
-
-//@Mod.EventBusSubscriber(modid = "pixelmonperms")
-
 public class PixelmonPermsEventHandler {
 
     @Mod.EventBusSubscriber(modid = "pixelmonperms", bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.DEDICATED_SERVER)
@@ -52,40 +47,10 @@ public class PixelmonPermsEventHandler {
                 CommandUtils.executeCommandList(player.getServer(), player, NBTHandler.propertyListToArray(commandListNbt));
             }
         }
-//        @SubscribeEvent(priority = EventPriority.HIGHEST)
-//        public static void onNPCBattleEvent(NPCEvent.StartBattle event) throws CommandSyntaxException {
-//            if (!LegacyNBTHandler.hasRequiredPermission(event.npc)) {
-//                return;
-//            }
-//            String[] perms = LegacyNBTHandler.getRequiredPermissions(event.npc);
-//            if (!PermUtils.hasAllRequiredPermissions(event.player, perms)) {
-//                PixelmonUtils.customNpcChat(event.npc, (ServerPlayerEntity) event.player, LegacyNBTHandler.getCancelMessages(event.npc));
-////                event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc))), event.player.getUUID());
-//                if (LegacyNBTHandler.hasFailCommand(event.npc)) {
-//                    boolean commandSuccess = executeCommandList(event.player.getServer(), event.player, LegacyNBTHandler.getFailCommands(event.npc));
-//                }
-//                event.setCanceled(true);
-//            }
-//        }
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public static void onNPCBattleEvent(NPCEvent.StartBattle event) throws CommandSyntaxException {
             handlePermEvent(event, event.npc, event.player);
         }
-//        @SubscribeEvent(priority = EventPriority.HIGHEST)
-//        public static void onNPCInteractEvent(NPCEvent.Interact event) throws CommandSyntaxException {
-//            if (!LegacyNBTHandler.hasRequiredPermission(event.npc)) {
-//                return;
-//            }
-//            String[] perms = LegacyNBTHandler.getRequiredPermissions(event.npc);
-//            if (!PermUtils.hasAllRequiredPermissions(event.player, perms)) {
-//                PixelmonUtils.customNpcChat(event.npc, (ServerPlayerEntity) event.player, LegacyNBTHandler.getCancelMessages(event.npc));
-////                event.player.sendMessage(new StringTextComponent(FormattingHelper.formatWithAmpersand(NBTHandler.getCancelMessage(event.npc))), event.player.getUUID());
-//                if (LegacyNBTHandler.hasFailCommand(event.npc)) {
-//                    boolean commandSuccess = executeCommandList(event.player.getServer(), event.player, LegacyNBTHandler.getFailCommands(event.npc));
-//                }
-//                event.setCanceled(true);
-//            }
-//        }
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public static void onNPCInteractEvent(NPCEvent.Interact event) throws CommandSyntaxException {
             handlePermEvent(event, event.npc, event.player);
