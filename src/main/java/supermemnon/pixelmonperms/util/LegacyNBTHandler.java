@@ -1,4 +1,4 @@
-package supermemnon.pixelmonperms;
+package supermemnon.pixelmonperms.util;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.CompoundNBT;
@@ -7,8 +7,7 @@ import net.minecraftforge.common.util.Constants;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class NBTHandler {
-
+public class LegacyNBTHandler {
     static String nbtPermString = "pixelmonperm";
     static String nbtCancelString = "pixelmoncancel";
     static String nbtFailCommandString = "pixelpermfailcmd";
@@ -16,6 +15,13 @@ public class NBTHandler {
     static String permListDelimiter = ",";
     static String altListDelimiter = "||";
     static String altListDelimiterRegex = "\\|\\|";
+
+    public static boolean refactorLegacyFormat(Entity entity, boolean forceRefactor) {
+        if (entity.getPersistentData().contains(NBTHandler.entryListKey) && !forceRefactor) {
+            return false;
+        }
+        return true;
+    }
 
     public static boolean isStringNbt(Entity entity, String search_nbt) {
         CompoundNBT  nbt = entity.getPersistentData();

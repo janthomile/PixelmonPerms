@@ -5,29 +5,17 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
-import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
-import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCEntity;
-import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.command.arguments.EntitySelector;
-import net.minecraft.command.arguments.UUIDArgument;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
-import org.apache.logging.log4j.Level;
-import supermemnon.pixelmonperms.NBTHandler;
-import supermemnon.pixelmonperms.PixelmonPerms;
+import net.minecraft.world.World;
+import supermemnon.pixelmonperms.util.LegacyNBTHandler;
 import supermemnon.pixelmonperms.util.FormattingHelper;
 import supermemnon.pixelmonperms.util.RayTraceHelper;
-
-import java.util.UUID;
 
 public class PixelmonPermsCommand {
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
@@ -98,7 +86,30 @@ public class PixelmonPermsCommand {
         );
     }
 
+    private static LiteralArgumentBuilder<CommandSource> appendDupeNPCCommand(LiteralArgumentBuilder<CommandSource> command) {
+        return command.then(Commands.literal("duplicatenpc")
+                .executes(context -> runDupeNPCCommand(context.getSource()))
+        );
+    }
 
+    private static int runDupeNPCCommand(CommandSource source) throws CommandSyntaxException {
+        ServerPlayerEntity player = source.getPlayerOrException();
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        if (lookEntity == null) {
+            source.sendFailure(new StringTextComponent("No entity found."));
+            return 0;
+        }
+        Entity dupeEntity = lookEntity.getType().create(lookEntity.level);
+        if (dupeEntity == null) {
+            return 0;
+        }
+        CompoundNBT entityNbt = new CompoundNBT();
+        lookEntity.saveWithoutId(entityNbt);
+        dupeEntity.load(entityNbt);
+        dupeEntity.setPose(lookEntity.getPose());
+        lookEntity.level.addFreshEntity(dupeEntity);
+        return 1;
+    }
 
     private static int runGetFailCommand(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity player = source.getPlayerOrException();
@@ -107,11 +118,11 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            if (!NBTHandler.hasFailCommand(lookEntity)) {
+            if (!LegacyNBTHandler.hasFailCommand(lookEntity)) {
                 source.sendFailure(new StringTextComponent("NPC has no fail command!!"));
                 return 0;
             }
-            String[] commandList = NBTHandler.getFailCommands(lookEntity);
+            String[] commandList = LegacyNBTHandler.getFailCommands(lookEntity);
             source.sendSuccess(new StringTextComponent(String.format("Interact Fail commands:\n%s", FormattingHelper.formatIndexedStringList(commandList))), true);
         }
         else {
@@ -127,7 +138,7 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            NBTHandler.appendFailCommand(lookEntity, command);
+            LegacyNBTHandler.appendFailCommand(lookEntity, command);
             source.sendSuccess(new StringTextComponent(String.format("Added fail command: %s", command)), true);
         }
         else {
@@ -143,16 +154,16 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            if (!NBTHandler.hasFailCommand(lookEntity)) {
+            if (!LegacyNBTHandler.hasFailCommand(lookEntity)) {
                 source.sendFailure(new StringTextComponent("NPC does not have fail command set!"));
                 return 0;
             }
-            String[] commands = NBTHandler.getFailCommands(lookEntity);
+            String[] commands = LegacyNBTHandler.getFailCommands(lookEntity);
             if (commands.length < (index + 1)) {
                 source.sendFailure(new StringTextComponent("NPC does not have a fail command at that index!"));
                 return 0;
             }
-            NBTHandler.removeFailCommand(lookEntity, index);
+            LegacyNBTHandler.removeFailCommand(lookEntity, index);
             source.sendSuccess(new StringTextComponent(String.format("Removed NPC's fail command at index %d.", index)), true);
         }
         else {
@@ -170,11 +181,11 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            if (!NBTHandler.hasRequiredPermission(lookEntity)) {
+            if (!LegacyNBTHandler.hasRequiredPermission(lookEntity)) {
                 source.sendFailure(new StringTextComponent("NPC has no required permission!"));
                 return 0;
             }
-            String[] permList = NBTHandler.getRequiredPermissions(lookEntity);
+            String[] permList = LegacyNBTHandler.getRequiredPermissions(lookEntity);
             source.sendSuccess(new StringTextComponent(String.format("Required permissions:\n%s", FormattingHelper.formatIndexedStringList(permList))), true);
         }
         else {
@@ -190,7 +201,7 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            NBTHandler.appendRequiredPermission(lookEntity, permission);
+            LegacyNBTHandler.appendRequiredPermission(lookEntity, permission);
             source.sendSuccess(new StringTextComponent(String.format("Added required permission: %s", permission)), true);
         }
         else {
@@ -210,8 +221,8 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("Entity is not NPC!"));
             return 0;
         }
-        String[] perms = NBTHandler.getRequiredPermissions(lookEntity);
-        if (!NBTHandler.hasRequiredPermission(lookEntity) || perms.length < 1) {
+        String[] perms = LegacyNBTHandler.getRequiredPermissions(lookEntity);
+        if (!LegacyNBTHandler.hasRequiredPermission(lookEntity) || perms.length < 1) {
             source.sendFailure(new StringTextComponent("NPC does not have required permission!!"));
             return 0;
         }
@@ -219,7 +230,7 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("NPC does not have a permission at that index!"));
             return 0;
         }
-        NBTHandler.removeRequirePermission(lookEntity, index);
+        LegacyNBTHandler.removeRequirePermission(lookEntity, index);
         source.sendSuccess(new StringTextComponent("Removed NPC's required permission."), true);
         return 1;
     }
@@ -231,11 +242,11 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            if (!NBTHandler.hasCancelMessage(lookEntity)) {
+            if (!LegacyNBTHandler.hasCancelMessage(lookEntity)) {
                 source.sendFailure(new StringTextComponent("NPC has no custom cancel message!"));
                 return 0;
             }
-            String[] cancelMessages = NBTHandler.getCancelMessages(lookEntity);
+            String[] cancelMessages = LegacyNBTHandler.getCancelMessages(lookEntity);
             source.sendSuccess(new StringTextComponent(String.format("Cancel Messages:\n%s", FormattingHelper.formatIndexedStringList(cancelMessages))), true);
         }
         else {
@@ -251,7 +262,7 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            NBTHandler.appendCancelMessage(lookEntity, cancelMessage);
+            LegacyNBTHandler.appendCancelMessage(lookEntity, cancelMessage);
             source.sendSuccess(new StringTextComponent(String.format("Added cancel message: %s", cancelMessage)), true);
         }
         else {
@@ -269,18 +280,18 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("No entity found."));
         }
         else if (lookEntity instanceof NPCEntity) {
-            if (!NBTHandler.hasCancelMessage(lookEntity)) {
+            if (!LegacyNBTHandler.hasCancelMessage(lookEntity)) {
                 source.sendFailure(new StringTextComponent("NPC does not have custom cancel message!!"));
                 return 0;
             }
 //            NBTHandler.removeCancelMessage(lookEntity, index);
 //            source.sendSuccess(new StringTextComponent("Removed NPC's custom cancel message."), false);
-            String[] messages = NBTHandler.getCancelMessages(lookEntity);
+            String[] messages = LegacyNBTHandler.getCancelMessages(lookEntity);
             if (messages.length < (index + 1)) {
                 source.sendFailure(new StringTextComponent("NPC does not have a message at that index!"));
                 return 0;
             }
-            NBTHandler.removeCancelMessage(lookEntity, index);
+            LegacyNBTHandler.removeCancelMessage(lookEntity, index);
             source.sendSuccess(new StringTextComponent(String.format("Removed NPC's message at index %d.", index)), true);
         }
         else {
