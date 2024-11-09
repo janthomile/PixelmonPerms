@@ -49,10 +49,10 @@ public class FormattingHelper {
                 if (eval == -1) {
                     return "";
                 }
-                str = str.concat("\n").concat( NBTHandler.EVAL.getNameFromValue(eval));
+                str = str.concat(NBTHandler.EVAL.getNameFromValue(eval));
             }
             case "permission": case "message": case "command": {
-                ListNBT list = NBTHandler.getEntryListProperty(entity, entryIndex, property);
+                ListNBT list = NBTHandler.getEntryListProperty(entity, entryIndex, NBTHandler.getKeyFromString(property));
                 if (list == null) {
                     return "";
                 }

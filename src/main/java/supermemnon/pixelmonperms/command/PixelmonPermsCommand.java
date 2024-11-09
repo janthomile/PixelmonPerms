@@ -1,6 +1,7 @@
 package supermemnon.pixelmonperms.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 public class PixelmonPermsCommand {
     private static final String[] entryCommandOptions = {"eval", "permission", "message", "command"};
     private static final String[] entryListOptions = {"permission", "message", "command"};
-    private static final String[] evalCommandOptions = {"and", "or", "not"};
+    private static final String[] evalCommandOptions = {"AND", "OR", "NOT"};
     private static CompletableFuture<Suggestions> getSuggestionsFromList(SuggestionsBuilder builder, String[] options) {
         for (String suggestion : options) {
             builder.suggest(suggestion);
@@ -80,7 +81,9 @@ public class PixelmonPermsCommand {
                         .then(Commands.literal("remove")
                                 .then(Commands.argument("property", StringArgumentType.word())
                                         .suggests(((context, builder) -> getSuggestionsFromList(builder, entryListOptions)))
-                                        .executes(context -> runGetEntryProperty(context.getSource(), IntegerArgumentType.getInteger(context, "index"), StringArgumentType.getString(context, "property")))
+                                        .then(Commands.argument("valueIndex", IntegerArgumentType.integer())
+                                                .executes(context -> runRemoveEntryProperty(context.getSource(), IntegerArgumentType.getInteger(context, "index"), StringArgumentType.getString(context, "property"), IntegerArgumentType.getInteger(context, "valueIndex")))
+                                        )
                                 )
                         )
                 )
@@ -169,7 +172,10 @@ public class PixelmonPermsCommand {
                     source.sendFailure(new StringTextComponent("Invalid eval input!"));
                     return 0;
                 }
-                success = NBTHandler.setEntryEval(lookEntity, entryIndex, eval);
+                if (NBTHandler.setEntryEval(lookEntity, entryIndex, eval)) {
+                    source.sendSuccess(new StringTextComponent(String.format("Assigned EVAL: %s to entry %s successfully!", value, entryIndex)), true);
+                    return 1;
+                }
             }
             case  "permission": case "message": case "command": {
                 success = NBTHandler.appendEntryPropertyItem(lookEntity, entryIndex, property, value);
@@ -179,6 +185,23 @@ public class PixelmonPermsCommand {
             source.sendFailure(new StringTextComponent("Entry or property not found!"));
             return 0;
         }
+        source.sendSuccess(new StringTextComponent(String.format("Added new %s to entry %s successfully!", property, entryIndex)), true);
+        return 1;
+    }
+
+    private static int runRemoveEntryProperty(CommandSource source, int entryIndex, String property, int index) throws CommandSyntaxException {
+        ServerPlayerEntity player = source.getPlayerOrException();
+        Entity lookEntity = RayTraceHelper.getEntityLookingAt(player, 8.0);
+        if (!(lookEntity instanceof NPCEntity)) {
+            source.sendFailure(new StringTextComponent("Invalid NPC selected!"));
+            return 0;
+        }
+        boolean success = NBTHandler.removeEntryPropertyItem(lookEntity, entryIndex, property, index);
+        if (!success) {
+            source.sendFailure(new StringTextComponent("Entry or property not found!"));
+            return 0;
+        }
+        source.sendSuccess(new StringTextComponent(String.format("Removed entry %s's %s at index %s successfully!", entryIndex, property, index)), true);
         return 1;
     }
 
@@ -193,7 +216,12 @@ public class PixelmonPermsCommand {
                         .executes(context -> runReformatNPC(context.getSource()))
                 )
                 .then(Commands.literal("sweep")
-                        .executes(context -> runSweepReformat(context.getSource()))
+                        .then(Commands.argument("overwrite", BoolArgumentType.bool())
+                                .then(Commands.argument("clearLegacyData", BoolArgumentType.bool())
+                                        .executes(context -> runSweepReformat(context.getSource(), BoolArgumentType.getBool(context, "overwrite"), BoolArgumentType.getBool(context, "clearLegacyData")))
+                                )
+                        )
+                        .executes(context -> runSweepReformat(context.getSource(), false, false))
                 )
         );
     }
@@ -219,13 +247,13 @@ public class PixelmonPermsCommand {
     }
 
 
-    private static int runSweepReformat(CommandSource source) throws CommandSyntaxException {
+    private static int runSweepReformat(CommandSource source, boolean overwrite, boolean clearLegacy) throws CommandSyntaxException {
         ServerWorld world = source.getLevel();
         int successCount = 0;
         int failCount = 0;
         for (NPCEntity npc : world.getEntities().filter(entity -> entity instanceof NPCEntity).map(entity -> (NPCEntity) entity).collect(Collectors.toList())) {
             if (LegacyNBTHandler.entityHasLegacyFormat(npc)) {
-                boolean success = LegacyNBTHandler.refactorLegacyFormat(npc, false);
+                boolean success = LegacyNBTHandler.refactorLegacyFormat(npc, overwrite);
                 if (success) {
                     successCount++;
                 }

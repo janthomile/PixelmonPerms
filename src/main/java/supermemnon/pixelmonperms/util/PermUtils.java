@@ -1,9 +1,14 @@
 package supermemnon.pixelmonperms.util;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.pixelmonmod.pixelmon.entities.npcs.NPCEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraftforge.server.permission.PermissionAPI;
+
+import static supermemnon.pixelmonperms.util.CommandUtils.executeCommandList;
 
 
 public class PermUtils {

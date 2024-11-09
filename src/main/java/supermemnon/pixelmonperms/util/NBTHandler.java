@@ -23,7 +23,7 @@ public class NBTHandler {
         public static int getValueFromName(String name) {
             for (EVAL eval  : EVAL.values())
             {
-                if (eval.name().toLowerCase() == name) {
+                if (eval.name().equalsIgnoreCase(name)) {
                     return eval.value;
                 }
             }
@@ -48,11 +48,11 @@ public class NBTHandler {
     static final int STRING_NBT_TYPE = 8;
     static final int COMPOUND_NBT_TYPE = 10;
 
-    static final String entryListKey = "permEntries";
-    static final String evalKey = "eval";
-    static final String permListKey = "permList";
-    static final String msgListKey = "msgList";
-    static final String cmdListKey = "cmdList";
+    static public final String entryListKey = "permEntries";
+    static public final String evalKey = "eval";
+    static public final String permListKey = "permList";
+    static public final String msgListKey = "msgList";
+    static public final String cmdListKey = "cmdList";
 
     public static boolean initEntryList(Entity entity) {
         ListNBT entryList = new ListNBT();
@@ -130,12 +130,12 @@ public class NBTHandler {
     }
 
     @Nullable
-    public static ListNBT getEntryListProperty(Entity entity, int entryIndex, String property) {
+    public static ListNBT getEntryListProperty(Entity entity, int entryIndex, String propertyKey) {
         CompoundNBT entry = getEntry(entity, entryIndex);
         if (entry == null) {
             return null;
         }
-        return entry.getList(property, STRING_NBT_TYPE);
+        return entry.getList(propertyKey, STRING_NBT_TYPE);
     }
 
     public static String[] propertyListToArray(ListNBT list) {
@@ -148,7 +148,7 @@ public class NBTHandler {
 
 
     public static boolean removeEntryPropertyItem(Entity entity, int entryIndex, String property, int index) {
-        ListNBT listProperty = getEntryListProperty(entity, entryIndex, property);
+        ListNBT listProperty = getEntryListProperty(entity, entryIndex, getKeyFromString(property));
         if (listProperty == null || listProperty.size() < (index+1)) {
             return false;
         }
@@ -157,7 +157,7 @@ public class NBTHandler {
     }
 
     public static boolean appendEntryPropertyItem(Entity entity, int entryIndex, String property, String newString) {
-        ListNBT listProperty = getEntryListProperty(entity, entryIndex, property);
+        ListNBT listProperty = getEntryListProperty(entity, entryIndex, getKeyFromString(property));
         listProperty.add(StringNBT.valueOf(newString));
         return true;
     }
